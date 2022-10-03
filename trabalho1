@@ -49,12 +49,12 @@ _STRING (([\']([^\'\n]|\\\'|\'\')*[\'])|([\"]([^\"\n]|\\\"|\"\")*[\"]))
 /* Aspas invertidas. Podem se estender para além do final da linha. Nesse caso, a string deve conter os espaços em branco e a quebra de linha ('\n').
 É permitido dentro de string o ${ID}, que deve ser identificado (a string termina antes do "$" e recomeça após o "}". Isso deve retorna 3 tokens: _STRING, EXPR e STRING.
 */
-CARACTERES ([,]|[.]|[:]|[;]|[*]|[@]|[?]|[!]|[#]|[%]|[/]|[\"]|[\']|["]|[`])
-CARSTRING ({CARACTERES}|{LETRA}|{_INT}|{_FLOAT}|{_ID}|{SINAL}|{DIGITO}|[$])
+CARACTERES ([,]|[.]|[:]|[;]|[*]|[@]|[?]|[!]|[#]|[%]|[/]|[\"]|[\'])
+CARSTRING ({CARACTERES}|{LETRA}|{_INT}|{_FLOAT}|{_ID}|{SINAL}|{DIGITO})
 
-_STRING2P1 ([`]({CARSTRING}|{WS})+[`])
-_STRING2P2 ([`]({CARSTRING}|{WS})+[{])
-_STRING2P3 ({CARSTRING})+[`])
+_STRING2P1 ([`]({CARSTRING}|{WS}|[$])+[`])
+_STRING2P2 ([`]({CARSTRING}|{WS})+[$][{])
+_STRING2P3 (({CARSTRING})+[`])
 _STRING2 ({_STRING2P1}|{_STRING2P2}|{_STRING2P3})
 
 _EXPR ({_ID}[}])
