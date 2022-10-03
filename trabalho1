@@ -42,9 +42,22 @@ _FLOAT {_INT}+("."{_INT}+)?([Ee]{SINAL}?{_INT})?
 _FOR [F|f][O|o][R|r]
 _IF [Ii][Ff]
 
-/* Uma string começa e termina com aspas. Se houver aspas dentro da string devemos usar contrabarra ou duas aspas.  Uma string não pode ir além do final da linha. Podemos usar aspas simples ou aspas duplas, mas se começou com aspas  simples deve terminar com aspas simples*/
+/* Uma string começa e termina com aspas. Se houver aspas dentro da string devemos usar contrabarra ou duas aspas.  Uma string não pode ir além do final 
+da linha. Podemos usar aspas simples ou aspas duplas, mas se começou com aspas  simples deve terminar com aspas simples*/
 _STRING (([\']([^\'\n]|\\\'|\'\')*[\'])|([\"]([^\"\n]|\\\"|\"\")*[\"]))
 
+/* Aspas invertidas. Podem se estender para além do final da linha. Nesse caso, a string deve conter os espaços em branco e a quebra de linha ('\n').
+É permitido dentro de string o ${ID}, que deve ser identificado (a string termina antes do "$" e recomeça após o "}". Isso deve retorna 3 tokens: _STRING, EXPR e STRING.
+*/
+CARACTERES ([,]|[.]|[:]|[;]|[*]|[@]|[?]|[!]|[#]|[%]|[/]|[\"]|[\']|["]|[`])
+CARSTRING ({CARACTERES}|{LETRA}|{_INT}|{_FLOAT}|{_ID}|{SINAL}|{DIGITO}|[$])
+
+_STRING2P1 ([`]({CARSTRING}|{WS})+[`])
+_STRING2P2 ([`]({CARSTRING}|{WS})+[{])
+_STRING2P3 ({CARSTRING})+[`])
+_STRING2 ({_STRING2P1}|{_STRING2P2}|{_STRING2P3})
+
+_EXPR ({_ID}[}])
 
 %%
 {WS} {}
@@ -57,7 +70,9 @@ _STRING (([\']([^\'\n]|\\\'|\'\')*[\'])|([\"]([^\"\n]|\\\"|\"\")*[\"]))
 "==" {lexema = yytext; return _IG; }
 "!=" {lexema = yytext; return _DIF; }
 {COMENTARIO} {lexema = yytext; return _COMENTARIO; }
-{_STRING} {lexema = yytext; lexema = lexema.substr(1, lexema.length()-2); return _STRING;}
+{_STRING} {lexema = yytext; lexema = lexema.substr(1, lexema.length()-2); return _STRING; }
+{_STRING2} {lexema = yytext; lexema = lexema.substr(1, lexema.length()-2); return _STRING2; }
+{_EXPR} {lexema = yytext; lexema = lexema.substr(1, lexema.length()-2); return _EXPR; }
 {ERRO} {printf ("Erro: Identificador inválido: %s\n", yytext); } 
 {_ID} {lexema = yytext; return _ID; }
 .       {lexema = yytext;
