@@ -1,0 +1,68 @@
+%{
+    string lexema;
+%}
+/* Coloque aqui definições regulares*/
+
+DIGITO [0-9]
+LETRA [A-Za-z_]
+SINAL [+\-]
+WS [ \t\n]*
+
+/*'$', letra ou '_' seguido por letra, @, digito ou '_'. Não é permitido $@ puros(s), tem que ter pelo menos mais um caractere ou
+dígito*/
+_ID1 ([$])+({LETRA}|{DIGITO})+({LETRA}|{DIGITO}|[@])*
+_ID2 ({LETRA})+({LETRA}|[@]|{DIGITO})+({LETRA}|[@]|{DIGITO})*
+_ID3 ([$])+([@])+({LETRA}|{DIGITO}|[@])+
+_ID4 ([$]|{LETRA}|[_])
+_ID ({_ID1}|{_ID2}|{_ID3}|{_ID4})
+
+/* Erro iniciando com número */
+_ERRO1 ({DIGITO})+({LETRA}|[@]|[$])+
+
+/* Erro iniciando com $ seguido de @, podendo ou não ser seguido de $*/
+_ERRO2 ([$])+([@])+([$])*
+
+/* Erro iniciando com @*/
+_ERRO3 ([@])+({_ID})*
+
+/* Erro com $ no meio*/
+_ERRO4 ({_ID})+([$])+
+
+/* Erro com varios $*/
+_ERRO5 ([$])+([$])+
+
+ERRO ({_ERRO1}|{_ERRO2}|{_ERRO3}|{_ERRO4}|{_ERRO5})
+
+/* Um comentário pode se estender por mais de uma linha, e não pode haver comentário dentro de comentário. Não deve juntar comentários que estão separados.*/
+COMENTARIO (([/][*])(([^*])|("*"[^/]))*[*][/])|([/][/][^\n]*)
+
+_INT {DIGITO}*
+/* Números de ponto flutuante e em notação científica*/
+_FLOAT {_INT}+("."{_INT}+)?([Ee]{SINAL}?{_INT})?
+_FOR [F|f][O|o][R|r]
+_IF [Ii][Ff]
+
+/* Uma string começa e termina com aspas. Se houver aspas dentro da string devemos usar contrabarra ou duas aspas.  Uma string não pode ir além do final da linha. Podemos usar aspas simples ou aspas duplas, mas se começou com aspas  simples deve terminar com aspas simples*/
+_STRING (([\']([^\'\n]|\\\'|\'\')*[\'])|([\"]([^\"\n]|\\\"|\"\")*[\"]))
+
+
+%%
+{WS} {}
+{_INT} {lexema = yytext; return _INT; }
+{_FLOAT} {lexema = yytext; return _FLOAT; }
+{_FOR} {lexema = yytext; return _FOR; }
+{_IF} {lexema = yytext; return _IF; }
+">=" {lexema = yytext; return _MAIG; }
+"<=" {lexema = yytext; return _MEIG; }
+"==" {lexema = yytext; return _IG; }
+"!=" {lexema = yytext; return _DIF; }
+{COMENTARIO} {lexema = yytext; return _COMENTARIO; }
+{_STRING} {lexema = yytext; lexema = lexema.substr(1, lexema.length()-2); return _STRING;}
+{ERRO} {printf ("Erro: Identificador inválido: %s\n", yytext); } 
+{_ID} {lexema = yytext; return _ID; }
+.       {lexema = yytext;
+   return *yytext; 
+          /* Essa deve ser a última regra. Dessa forma qualquer caractere isolado será retornado pelo seu código ascii. */ }
+%%
+
+/* Não coloque nada aqui - a função main é def automaticamente na hora de avaliar*/
